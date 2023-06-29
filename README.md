@@ -1,6 +1,307 @@
 # posts
 
-Does Laravel Scale?
+## Laravel Queue based Concurrency Handling
+Write
+
+Get unlimited access to all of Medium for less than $1/week.
+Become a member
+A rare image of Beloved Laravel, Redis and Queue 😐
+Concurrency Attack and Queue in Laravel — Batman Returns!
+Farhat Shahir Zim
+
+Farhat Shahir Zim
+·
+
+8 min read
+·
+Mar 8, 2020
+
+Prevention is better than cure.
+
+    “Put on the full armor of God, so that you can take your stand against the devil’s schemes.” — Ephesians 6:11
+
+The Lost World!
+
+The world (tech world) is as dark as exciting. There are foul creatures (unethical hackers) everywhere in this dark world. Anytime any kind of foul creature can harm us and our application if we are not careful and smart enough. They have many ways to harm mankind (software engineers). Concurrency attack is one of them.
+
+Today we have Batman with us. In our previous blog, Deadpool developed a nice wallet application. He started it. Batman is gonna end it with perfection and security. Batman is the senior software engineer in Gotham city. Security and prevention are his responsibility.
+A horror scenario of concurrency attack!
+
+Let’s think about a scenario. Which will lead us to the thought why we should take concurrency attack seriously. In our previous wallet application, we added the functionality of transferring the balance from one wallet to another. Now let's have some information in our mind.
+
+    Joker has only 1,000,000$ in his wallet.
+    He wants to transfer 1,000,000$ to Harley Quinn’s wallet.
+
+Now instead of just clicking on the “send ” button, Joker did something odd.
+He logged in to his wallet application account from two different browsers. Both browsers were on different machines. And then,
+
+Joker clicked on the send buttons from two different browsers with his two foul hands, at the same time. With good timing and good perception.
+A moment of silence
+
+Harley Quinn got 2,000,000$ in her account.
+
+Where the extra 1,000,000$ came from? From nowhere. This is loss Deadpool must bear now!
+We are fried
+Now, This is the“I am Batman” Moment!
+
+But wait. What I was telling you is just a scenario. We have Batman remember? He thought about this scenario before launching the application. Now Let’s secure our application from Joker with Batman.
+Batman’s Solution for Concurrency Attack In Laravel
+
+The Queue. Yes, Laravel’s Job & Queue. And we are gonna secure our wallet application that way. Now let’s see what else we need to install for our application.
+
+prerequisite
+
+    PHP >= 7.1.3
+    Laravel ≥ 5.8
+    Redis
+    Mysql
+
+Batman’s Important Notes to Take!
+
+    Now the reason we are using Redis because it's fast. Although we have some drawbacks in Redis. You need to stop Redis to remove the previous queues.without clearing cache, restarting the redis will resume those queue process again!
+
+    Redis installation link: https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04
+
+Let’s Begin and save Gotham City…
+
+Before we dive into the main part I request you to read the previous blog where we demonstrate a simple wallet application with only one feature called balance-transfer. If you have read that already then let’s proceed.
+
+First of all, install Laravel’s Horizon in our wallet application.
+
+    “Horizon provides a beautiful dashboard and code-driven configuration for your Laravel powered Redis queues. Horizon allows you to easily monitor key metrics of your queue system such as job throughput, runtime, and job failures.
+
+    All of your worker configuration is stored in a single, simple configuration file, allowing your configuration to stay in source control where your entire team can collaborate.” — From The Beautiful Laravel Doc
+
+Step[00] — Installation of The Weapon Called Horizon:
+
+Install Laravel’s Horizon with this command.
+
+composer require laravel/horizon v3.7.1
+
+Now publish its assets using the horizon:install Artisan command:
+
+php artisan horizon:install
+
+Now let's make migration to create the failed_jobs table to store any failed queue jobs.
+
+php artisan queue:failed-table
+
+php artisan migrate
+
+Now let’s change QUEUE_CONNECTION value “sync” to “redis” in .env file. As we will use the Redis database for our queue.
+
+QUEUE_CONNECTION=syncto QUEUE_CONNECTION=redis
+
+Nice. Installation complete. Now start our application and Horizon with this command.
+
+// Start application
+php artisan serve// Start horizon
+php artisan horizon
+
+Now if you go to this link (http://127.0.0.1:8000/horizon/dashboard), you will see your horizon is active, Like this.
+Step [01] — Configure Your New Weapon Called Horizon:
+
+In our config/horizon.php file, Let’s add another queue just beside the default queue.
+config/horizon.php
+
+You can manage multiple environments with multiple supervisors. We will talk more about it later.
+
+Wait, can everyone see our horizon dashboard this way? Yes…But we can’t let it happen. Let’s secure our horizon dashboard.
+
+    “Horizon exposes a dashboard at /horizon. By default, you will only be able to access this dashboard in the local environment. Within your app/Providers/HorizonServiceProvider.php file, there is a gate method. This authorization gate controls access to Horizon in non-local environments. You are free to modify this gate as needed to restrict access to your Horizon installation”
+    — From our beloved Laravel Doc
+
+So Let’s add Batman’s email in the gate() method.
+Step [02] — Create a Job in our Laravel application:
+
+We will now create a Job called BalanceTransferJob. Which will be created inside the app/Jobs directory
+
+php artisan make:job BalanceTransferJob// Now inside of app/Jobs you will see this
+// BalanceTransferJob.php
+
+Step [03] — Recall Our WalletService And WalletController From The Previous Blog:
+
+Let’s take a look again at our WalletService.php and WalletController.php.
+app/Http/Controllers/WalletController.php
+app/Services/WalletService.php
+
+If you read our previous blog, you will understand what's happening here. But I will explain again.
+
+We have 2 methods here.
+1. transfer()
+2. balanceTransferValidation()
+
+Our balanceTransferValidation() method will validate
+
+    If all the wallets (sender and receiver wallet) exist.
+    And the sender has enough balance to transfer.
+    If anything goes missing here, this method is responsible for sending the exception messages according to the validation.
+
+Our transfer() method will check the validation method’s response and
+
+    If everything is ok this method will transfer the balance from the sender’s wallet to the receiver’s wallet.
+    If not this will send a response accordingly.
+
+Step [04] — Job & Queue Implementation:
+
+Now, which part should we send to the queue? Well, the main part. Where we are actually transferring the balance. This part below.
+Balance transfer
+
+Now we will take this part to your newly created Job called BalanceTransferJob.php. Let's have a look at our Job now.
+Let’s break it down our BalanceTransferJob!
+
+    In our Job, we have a constructor and a handle() method.
+    We have initialized $senderWalletId, $receiverWalletId, $transferAmount and WalletService in our constructor.
+    In our handle() method’s try-block, We started the database transaction first.
+    Then checked if all wallets exist and the sender has enough balance to transfer. If not we rolled back the transaction.
+    If validation is successful then we decreased the balance from the sender’s wallet.
+    And increased the balance to the receiver’s wallet and committed the transaction.
+    In our handle() method’s catch-block, We rolled back the transaction.
+
+And that's all. This is all our BalanceTransferJob will do.
+Step [05] — Dispatch The Job In Queue With Delay:
+
+Well, we wrote the Job now we need to dispatch it in the transfer() method. A way of dispatching a Job with delay is like this:
+
+dispatch(new YourJob($param1, $param2, ...))
+    ->onQueue('your-desired-queue')
+    ->delay(Carbon::now()->addSeconds(10));
+
+You can avoid delays in many cases where it is not necessary. But to prevent concurrency attack we need delay here. You can add any value of seconds in your delay according to your requirements. After dispatching the Job in our wallet service, our transfer() method will be like this:
+
+    Please!… don’t forget to import necessary classes.
+
+Now, let's start our horizon again as we did some changes.
+
+php artisan horizon
+
+Now let’s hit on our API route http://127.0.0.1:8000/api/transfer-balance following the below image. I have used phpStrom’s API Debugger, but you can use postman as well.
+
+Now let's go to our horizon dashboard And check our current workload (http://127.0.0.1:8000/horizon/dashboard)
+
+We have a Job in our current workload. Now Let’s check our recent jobs in the dashboard.
+
+Well, our job has been dispatched in the queue successfully.
+Summary of our procedures:
+
+    Installed Horizon.
+    Created a new Job called BalanceTransferJob.
+    Moved our balance transfer code into the Job
+    Dispatched the job with 10 seconds delay in transfer() method of our WalletService.
+    Restarted our horizon after these changes.
+    Make a POST request to our API endpoint.
+    And finally, we checked the horizon dashboard to see everything worked as we planned.
+
+Joker will fail to make concurrency attacks now
+
+Now, how Batman prevented concurrency attack? Well, after implementing the job in the queue with a delay, If joker tries to make a concurrent hit both requests will go to the queue in a FIFO (First in first out) manner. So one of the transactions will happen first, then when the 2nd transaction takes place, Our balanceTransferValidation() method will prevent that from happening. And Harly will never get the extra 1M dollar from Joker.
+
+And this is how Gotham city has been secured again. Thanks to Dear God and his warrior of dark, THE BATMAN.
+
+You can try the concurrency attacks by yourself. Ha, ha…you will also fail now !!!!
+
+    But the Lord is faithful, and he will strengthen you and protect you from the evil one. — Thessalonians 3:3
+
+I pray again to dear Lord to keep you guys away from every unexpected and unholy bug. May God bless your application in production.
+
+Ameen!
+Laravel
+Redis
+Concurrency
+Laravel Horizon
+Laravel Queue
+
+Farhat Shahir Zim
+Written by Farhat Shahir Zim
+56 Followers
+
+[Embedded Software Engineer] — | C/C++ | Assembly | RISC-V | SystemC | Microcontroller | Computer Architecture | Self taught programmer |
+More from Farhat Shahir Zim
+Farhat Shahir Zim
+
+Farhat Shahir Zim
+Exception Handling and Database Transaction in Laravel — Part 2
+Hello good folks! let’s get a machine gun and handle sum bugs. Also, our Deadpool is killing bugs instead of bad guys.
+5 min read·Mar 1, 2020
+
+Farhat Shahir Zim
+
+Farhat Shahir Zim
+Exception handling and Database Transaction in Laravel  — Part 1
+Let's say you are going to insert data into multiple tables or update a table after inserting some data into another table. In the…
+5 min read·Mar 1, 2020
+
+See all from Farhat Shahir Zim
+Recommended from Medium
+Jacob Bennett
+
+Jacob Bennett
+
+in
+
+Level Up Coding
+Use Git like a senior engineer
+Git is a powerful tool that feels great to use when you know how to use it.
+·4 min read·Nov 15, 2022
+
+The PyCoach
+
+The PyCoach
+
+in
+
+Artificial Corner
+You’re Using ChatGPT Wrong! Here’s How to Be Ahead of 99% of ChatGPT Users
+Master ChatGPT by learning prompt engineering.
+·7 min read·Mar 17
+
+Lists
+General Coding Knowledge
+20 stories·29 saves
+Now in AI: Handpicked by Better Programming
+248 stories·14 saves
+The Coding Diaries
+
+The Coding Diaries
+
+in
+
+The Coding Diaries
+Why Experienced Programmers Fail Coding Interviews
+A friend of mine recently joined a FAANG company as an engineering manager, and found themselves in the position of recruiting for…
+·5 min read·Nov 2, 2022
+
+Arslan Ahmad
+
+Arslan Ahmad
+
+in
+
+Level Up Coding
+System Design Interview Survival Guide (2023): Preparation Strategies and Practical Tips
+System Design Interview Preparation: Mastering the Art of System Design.
+·14 min read·Jan 19
+
+John Raines
+
+John Raines
+Be an Engineer, not a Frameworker
+Time to level up.
+·10 min read·Mar 8, 2022
+
+Tiexin Guo
+
+Tiexin Guo
+
+in
+
+4th Coffee
+10 New DevOps Tools to Watch in 2023
+With less than two months left in 2022, today, I’d like to look at some new (relatively) DevOps tools we might want to follow in 2023.
+·9 min read·Nov 2, 2022
+
+
+## Does Laravel Scale?
 
 The internet is full of lies about whether Laravel can scale. Here's the truth.
 Does Laravel Scale?
