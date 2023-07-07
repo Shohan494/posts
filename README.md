@@ -1,5 +1,196 @@
 # posts
 
+Write
+
+Get unlimited access to all of Medium for less than $1/week.
+Become a member
+How to reverse a number mathematically.
+ManBearPig
+
+ManBearPig
+·
+
+3 min read
+·
+Nov 2, 2016
+
+Jackson Bates recently published an article describing how mathematical solutions can be thousands of times more efficient than their iterative or recursive counterparts.
+
+A useful exercise to help you start thinking about programming mathematically is to reverse an integer.
+
+For those of you who like to cut to the chase and dive right into the code, here is a gist containing our algorithm.
+
+For the rest of us who prefer to receive an explanation, let’s examine our 3-step method implemented in Python.
+
+    We will remove the last digit from our number and append it to the end of our reversed number variable until our original number is gone and the reversed number is complete.
+
+Assuming that we have provided our algorithm an integer to work with,
+
+Where number is a variable that originally contains our integer,
+
+Where lastDigit is a variable that contains the last digit of number,
+
+Where reverse is a variable representing the reverse of number.
+Step 1 — Isolate the last digit in number
+
+lastDigit = number % 10
+
+The modulo operator (%) returns the remainder of a divison. In this case, we divide number by 10 and return the remainder. Consider the integer 1234. The tens column (30) is divided by 10 without remainder, the hundreds column (200) as well, and also the thousands column (1000). The remainder of the division will be 4 representing the ones column which could not be divided by 10. We now have the means to isolate the last digit of any integer. We save this in the variable lastDigit.
+Step 2 — Append lastDigit to reverse
+
+reverse = (reverse * 10) + lastDigit
+
+We can start building the reversed number now by appending lastDigit onto the end of reverse. Remember that both of these variables are integers so we can not simply concatenate. We multiply reverse by 10 so that the ones column becomes the tens column, the tens column becomes the hundreds column, and so on. This also leaves us with a new ones column where we can add our lastDigit which we determined was 4 in our example.
+
+reverse = (0 * 10) + 4
+
+reverse = 4
+
+We have successfully copied the last digit of number and appended it to reverse.
+Step 3-Remove last digit from number
+
+number = number / 10
+
+Notice that number is still 1234, even though we have already used that 4 on the end. To remove the last digit from number we simply divide it by 10. This works because we are performing integer division which rounds results down to the nearest integer (ex. 244 / 10 = 24).
+Iterate this process
+
+while (number > 0)
+
+Repeat this process until number is reduced to zero and reverse is completed.
+Conclusion
+
+This mathematical solution saved us from traversing arrays or other such methods which would have been less efficient.
+Programming
+Software Development
+Coding
+Education
+Tech
+
+ManBearPig
+Written by ManBearPig
+89 Followers
+
+I’m a computer science student in Canada.
+More from ManBearPig
+Two Coding Techniques to Quickly Build a Horizontal Section Webpage
+ManBearPig
+
+ManBearPig
+Two Coding Techniques to Quickly Build a Horizontal Section Webpage
+There are a few webpage designs that are used more frequently than others. One of these is the horizontal section template. It is common…
+3 min read·Oct 15, 2016
+
+Why it’s called bubble sort.
+ManBearPig
+
+ManBearPig
+
+in
+
+HackerNoon.com
+Why it’s called bubble sort.
+Bubble sort is a sequential sort algorithm. It sorts by comparing neighbouring elements and swaps them if they are out of order. It just…
+2 min read·Oct 6, 2016
+
+See all from ManBearPig
+Recommended from Medium
+Why Experienced Programmers Fail Coding Interviews
+The Coding Diaries
+
+The Coding Diaries
+
+in
+
+The Coding Diaries
+Why Experienced Programmers Fail Coding Interviews
+A friend of mine recently joined a FAANG company as an engineering manager, and found themselves in the position of recruiting for…
+·5 min read·Nov 2, 2022
+
+You’re Using ChatGPT Wrong! Here’s How to Be Ahead of 99% of ChatGPT Users
+The PyCoach
+
+The PyCoach
+
+in
+
+Artificial Corner
+You’re Using ChatGPT Wrong! Here’s How to Be Ahead of 99% of ChatGPT Users
+Master ChatGPT by learning prompt engineering.
+·7 min read·Mar 17
+
+Lists
+General Coding Knowledge
+20 stories·51 saves
+woman standing in front of projection of code on a screen
+It's never too late or early to start something
+10 stories·17 saves
+Stories to Help You Grow as a Software Developer
+19 stories·161 saves
+Coding & Development
+11 stories·34 saves
+Use Git like a senior engineer
+Jacob Bennett
+
+Jacob Bennett
+
+in
+
+Level Up Coding
+Use Git like a senior engineer
+Git is a powerful tool that feels great to use when you know how to use it.
+·4 min read·Nov 15, 2022
+
+What Really Happens to a Human Body at Titanic Depths
+JP Brown
+
+JP Brown
+What Really Happens to a Human Body at Titanic Depths
+A Millisecond-by-Millisecond Explanation
+·4 min read·Jun 23
+
+Don’t Just LeetCode; Follow the Coding Patterns Instead
+Arslan Ahmad
+
+Arslan Ahmad
+
+in
+
+Level Up Coding
+Don’t Just LeetCode; Follow the Coding Patterns Instead
+What if you don’t like to practice 100s of coding questions before the interview?
+·5 min read·Sep 16, 2022
+
+10 Seconds That Ended My 20 Year Marriage
+Unbecoming
+
+Unbecoming
+10 Seconds That Ended My 20 Year Marriage
+It’s August in Northern Virginia, hot and humid. I still haven’t showered from my morning trail run. I’m wearing my stay-at-home mom…
+·4 min read·Feb 16, 2022
+
+See more recommendations
+
+Help
+
+Status
+
+Writers
+
+Blog
+
+Careers
+
+Privacy
+
+Terms
+
+About
+
+Text to speech
+
+Teams
+
+
 ## Laravel Queue based Concurrency Handling
 Write
 
